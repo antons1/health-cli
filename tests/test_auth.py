@@ -40,9 +40,9 @@ class TestLogin:
 
     def test_login_rate_limit_exits(self, tmp_path):
         """login() exits cleanly on 429 rate limit."""
-        from garminconnect import GarminConnectConnectionError
+        from garminconnect import GarminConnectTooManyRequestsError
         mock_client = MagicMock()
-        mock_client.login.side_effect = GarminConnectConnectionError("429 Too Many Requests")
+        mock_client.login.side_effect = GarminConnectTooManyRequestsError("429 Too Many Requests")
 
         with patch("health_data.sources.garmin.auth.Garmin", return_value=mock_client), \
              patch("health_data.sources.garmin.auth.TOKEN_DIR", tmp_path / "tokens"):

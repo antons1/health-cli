@@ -6,15 +6,12 @@ from garminconnect import (
     Garmin,
     GarminConnectAuthenticationError,
     GarminConnectConnectionError,
+    GarminConnectTooManyRequestsError,
 )
 
 
 def api_call(fn):
     """Decorator that catches Garmin API errors and exits cleanly.
-
-    Handles two error types:
-    - GarminConnectAuthenticationError: token expired or invalid
-    - GarminConnectConnectionError: network/server issue
 
     Prints the error to stderr and exits with code 1, keeping
     stdout clean for JSON output.
@@ -24,6 +21,12 @@ def api_call(fn):
     def wrapper(*args, **kwargs):
         try:
             return fn(*args, **kwargs)
+        except GarminConnectTooManyRequestsError:
+            click.echo(
+                "Rate limited by Garmin. Wait 15-30 minutes and try again.",
+                err=True,
+            )
+            sys.exit(1)
         except GarminConnectAuthenticationError:
             click.echo("Authentication failed. Run: health garmin login", err=True)
             sys.exit(1)

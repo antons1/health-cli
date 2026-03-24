@@ -1,3 +1,4 @@
+import logging
 import os
 import sys
 from pathlib import Path
@@ -7,7 +8,14 @@ from garminconnect import (
     Garmin,
     GarminConnectAuthenticationError,
     GarminConnectConnectionError,
+    GarminConnectTooManyRequestsError,
 )
+
+# Suppress verbose tracebacks from garminconnect and garth loggers.
+# The library uses logger.exception() which prints full tracebacks
+# before raising — we handle errors ourselves with clean messages.
+logging.getLogger("garminconnect").setLevel(logging.CRITICAL)
+logging.getLogger("garth").setLevel(logging.CRITICAL)
 
 TOKEN_DIR = Path(
     os.environ.get("GARMIN_TOKEN_DIR", "~/.garmin-health/tokens")
@@ -23,14 +31,14 @@ def login(email: str, password: str) -> Garmin:
     client = Garmin(email, password)
     try:
         client.login()
+    except GarminConnectTooManyRequestsError:
+        click.echo(
+            "Rate limited by Garmin. Wait 15-30 minutes and try again.",
+            err=True,
+        )
+        sys.exit(1)
     except GarminConnectConnectionError as e:
-        if "429" in str(e):
-            click.echo(
-                "Rate limited by Garmin. Wait 15-30 minutes and try again.",
-                err=True,
-            )
-        else:
-            click.echo(f"Connection error: {e}", err=True)
+        click.echo(f"Connection error: {e}", err=True)
         sys.exit(1)
     except GarminConnectAuthenticationError as e:
         click.echo(f"Authentication failed: {e}", err=True)
@@ -52,16 +60,16 @@ def get_client() -> Garmin:
     client.garth.load(str(TOKEN_DIR))
     try:
         client.login()
-    except GarminConnectConnectionError as e:
-        if "429" in str(e):
-            click.echo(
-                "Rate limited by Garmin. Wait 15-30 minutes and try again.",
-                err=True,
-            )
-        else:
-            click.echo(f"Connection error: {e}", err=True)
+    except GarminConnectTooManyRequestsError:
+        click.echo(
+            "Rate limited by Garmin. Wait 15-30 minutes and try again.",
+            err=True,
+        )
         sys.exit(1)
-    except GarminConnectAuthenticationError as e:
+    except GarminConnectConnectionError as e:
+        click.echo(f"Connection error: {e}", err=True)
+        sys.exit(1)
+    except GarminConnectAuthenticationError:
         click.echo(
             "Saved tokens expired. Run: health garmin login", err=True
         )
