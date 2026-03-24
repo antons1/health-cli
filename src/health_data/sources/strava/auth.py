@@ -8,8 +8,16 @@ from pathlib import Path
 from threading import Thread
 from urllib.parse import urlparse, parse_qs
 
+import logging
+
 import click
 from stravalib import Client
+
+# Suppress stravalib warnings about missing env vars —
+# we manage credentials ourselves via config files.
+logging.getLogger("stravalib.client").setLevel(logging.ERROR)
+logging.getLogger("root").setLevel(logging.ERROR)
+os.environ["SILENCE_TOKEN_WARNINGS"] = "true"
 
 CONFIG_DIR = Path(
     os.environ.get("STRAVA_CONFIG_DIR", "~/.garmin-health/strava")
@@ -173,9 +181,14 @@ def _run_callback_server(auth_url: str) -> str:
 
     server = HTTPServer(("localhost", CALLBACK_PORT), CallbackHandler)
 
-    click.echo(f"Opening browser for Strava authorization...", err=True)
+    click.echo("Open this URL in your browser to authorize:", err=True)
+    click.echo(auth_url, err=True)
+    click.echo("", err=True)
+
+    # Try to open browser automatically (may not work in all environments)
     webbrowser.open(auth_url)
-    click.echo(f"Waiting for authorization (listening on port {CALLBACK_PORT})...", err=True)
+
+    click.echo(f"Waiting for callback on port {CALLBACK_PORT}...", err=True)
 
     # Handle one request (the OAuth callback)
     server.handle_request()
