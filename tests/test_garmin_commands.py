@@ -47,6 +47,7 @@ class TestGarminGroup:
 
 class TestLoginCommand:
     def test_login_prompts_and_authenticates(self, runner):
+        """In non-TTY mode (CliRunner), falls back to click.prompt for password."""
         with patch("health_data.sources.garmin.commands.do_login") as mock_login:
             result = runner.invoke(
                 main,
