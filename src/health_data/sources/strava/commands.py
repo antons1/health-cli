@@ -28,9 +28,14 @@ def setup(client_id, client_secret):
 
 
 @strava.command()
-def login():
-    """Authorize with Strava via OAuth2 (opens browser)."""
-    do_login()
+@click.option("--code", default=None, help="Auth code from callback URL (skips browser flow)")
+def login(code):
+    """Authorize with Strava via OAuth2 (opens browser).
+
+    If the browser callback doesn't work, copy the 'code' parameter
+    from the callback URL and pass it with --code.
+    """
+    do_login(code=code)
     click.echo("Strava login successful.", err=True)
 
 

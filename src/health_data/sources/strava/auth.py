@@ -16,7 +16,8 @@ CONFIG_DIR = Path(
 ).expanduser()
 
 # OAuth2 callback server settings
-CALLBACK_PORT = 5000
+# Port 5000 is used by AirPlay on macOS — use 8339 instead
+CALLBACK_PORT = 8339
 REDIRECT_URI = f"http://localhost:{CALLBACK_PORT}/callback"
 SCOPES = "read,activity:read_all,profile:read_all"
 
@@ -65,30 +66,32 @@ def load_tokens() -> dict:
     return json.loads(tokens_file.read_text())
 
 
-def login():
+def login(code: str | None = None):
     """Run OAuth2 authorization flow.
 
-    Opens browser for user to authorize, starts a local HTTP server
-    to catch the callback, exchanges the auth code for tokens.
+    If code is provided, skips the browser flow and exchanges
+    the code directly. Otherwise opens browser and starts a local
+    HTTP server to catch the callback.
     """
     config = load_config()
     client = Client()
 
-    # Generate authorization URL
-    auth_url = client.authorization_url(
-        client_id=config["client_id"],
-        redirect_uri=REDIRECT_URI,
-        scope=SCOPES.split(","),
-    )
+    if code is None:
+        # Generate authorization URL
+        auth_url = client.authorization_url(
+            client_id=config["client_id"],
+            redirect_uri=REDIRECT_URI,
+            scope=SCOPES.split(","),
+        )
 
-    # Start local server to catch the OAuth callback
-    auth_code = _run_callback_server(auth_url)
+        # Start local server to catch the OAuth callback
+        code = _run_callback_server(auth_url)
 
     # Exchange auth code for tokens
     token_response = client.exchange_code_for_token(
         client_id=config["client_id"],
         client_secret=config["client_secret"],
-        code=auth_code,
+        code=code,
     )
 
     save_tokens({
