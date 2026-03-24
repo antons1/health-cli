@@ -38,6 +38,30 @@ class TestLogin:
         dump_path = str(dump_call_args[0][0])
         assert "secret123" not in dump_path
 
+    def test_login_rate_limit_exits(self, tmp_path):
+        """login() exits cleanly on 429 rate limit."""
+        from garminconnect import GarminConnectConnectionError
+        mock_client = MagicMock()
+        mock_client.login.side_effect = GarminConnectConnectionError("429 Too Many Requests")
+
+        with patch("health_data.sources.garmin.auth.Garmin", return_value=mock_client), \
+             patch("health_data.sources.garmin.auth.TOKEN_DIR", tmp_path / "tokens"):
+            with pytest.raises(SystemExit) as exc_info:
+                login("user@example.com", "secret123")
+            assert exc_info.value.code == 1
+
+    def test_login_auth_error_exits(self, tmp_path):
+        """login() exits cleanly on authentication failure."""
+        from garminconnect import GarminConnectAuthenticationError
+        mock_client = MagicMock()
+        mock_client.login.side_effect = GarminConnectAuthenticationError("bad creds")
+
+        with patch("health_data.sources.garmin.auth.Garmin", return_value=mock_client), \
+             patch("health_data.sources.garmin.auth.TOKEN_DIR", tmp_path / "tokens"):
+            with pytest.raises(SystemExit) as exc_info:
+                login("user@example.com", "secret123")
+            assert exc_info.value.code == 1
+
 
 class TestGetClient:
     def test_exits_when_not_logged_in(self, tmp_path):
