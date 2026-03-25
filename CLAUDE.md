@@ -4,4 +4,4 @@ This project should end up in a CLI that can be used by Claude Code/Claude Cowor
 
 ## Agents
 
-The `health-data` agent (`.claude/agents/health-data.md`) can be used from any project to fetch health and fitness data. It wraps the `health` CLI.
+The `health-data` agent (`~/.claude/agents/health-data.md`) is globally available from any project to fetch health and fitness data. It wraps the `health` CLI.
