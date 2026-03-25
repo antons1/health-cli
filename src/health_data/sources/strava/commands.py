@@ -1,12 +1,18 @@
 import click
 
 from health_data.output import output
+from health_data.formatter import format_activities, format_activity, format_streams
 from health_data.sources.strava.auth import (
     setup as do_setup,
     login as do_login,
     get_client,
 )
 from health_data.sources.strava import client as strava_client
+
+
+def _use_json(ctx):
+    """Check if --json flag was set on the top-level command."""
+    return ctx.obj and ctx.obj.get("json", False)
 
 
 @click.group()
@@ -41,18 +47,28 @@ def login(code):
 
 @strava.command()
 @click.option("--limit", default=20, help="Number of activities")
-def activities(limit):
+@click.pass_context
+def activities(ctx, limit):
     """List recent activities."""
     c = get_client()
-    output(strava_client.get_activities(c, limit=limit))
+    data = strava_client.get_activities(c, limit=limit)
+    if _use_json(ctx):
+        output(data)
+    else:
+        click.echo(format_activities(data))
 
 
 @strava.command()
 @click.argument("activity_id", type=int)
-def activity(activity_id):
+@click.pass_context
+def activity(ctx, activity_id):
     """Get detailed data for a specific activity."""
     c = get_client()
-    output(strava_client.get_activity(c, activity_id))
+    data = strava_client.get_activity(c, activity_id)
+    if _use_json(ctx):
+        output(data)
+    else:
+        click.echo(format_activity(data))
 
 
 @strava.command()
@@ -62,7 +78,8 @@ def activity(activity_id):
     default=None,
     help="Comma-separated stream types (e.g. heartrate,watts,time)",
 )
-def streams(activity_id, types):
+@click.pass_context
+def streams(ctx, activity_id, types):
     """Get second-by-second time-series data for an activity.
 
     Available types: time, latlng, distance, altitude, velocity_smooth,
@@ -70,4 +87,8 @@ def streams(activity_id, types):
     """
     type_list = types.split(",") if types else None
     c = get_client()
-    output(strava_client.get_streams(c, activity_id, types=type_list))
+    data = strava_client.get_streams(c, activity_id, types=type_list)
+    if _use_json(ctx):
+        output(data)
+    else:
+        click.echo(format_streams(data))

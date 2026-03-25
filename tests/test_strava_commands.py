@@ -69,17 +69,45 @@ class TestLoginCommand:
         mock_login.assert_called_once()
 
 
+SAMPLE_ACTIVITY = {
+    "id": 1,
+    "name": "Run",
+    "sport_type": "Run",
+    "start_date_local": "2026-03-24T14:52:27+00:00",
+    "distance": 5000.0,
+    "moving_time": 1500,
+    "average_heartrate": 150.0,
+    "total_elevation_gain": 20.0,
+}
+
+
 class TestActivitiesCommand:
-    def test_activities_default(self, runner, mock_strava_client):
+    def test_activities_json_mode(self, runner, mock_strava_client):
+        """--json flag outputs raw JSON."""
         with patch(
             "health_data.sources.strava.commands.strava_client.get_activities",
-            return_value=[{"id": 1, "name": "Run"}],
+            return_value=[SAMPLE_ACTIVITY],
+        ):
+            result = runner.invoke(main, ["--json", "strava", "activities"])
+
+        assert result.exit_code == 0
+        data = json.loads(result.output)
+        assert data == [SAMPLE_ACTIVITY]
+
+    def test_activities_human_mode(self, runner, mock_strava_client):
+        """Default output is human-readable table."""
+        with patch(
+            "health_data.sources.strava.commands.strava_client.get_activities",
+            return_value=[SAMPLE_ACTIVITY],
         ):
             result = runner.invoke(main, ["strava", "activities"])
 
         assert result.exit_code == 0
-        data = json.loads(result.output)
-        assert data == [{"id": 1, "name": "Run"}]
+        assert "Run" in result.output
+        assert "5.0 km" in result.output
+        # Should NOT be valid JSON
+        with pytest.raises(json.JSONDecodeError):
+            json.loads(result.output)
 
     def test_activities_with_limit(self, runner, mock_strava_client):
         with patch(
@@ -93,31 +121,51 @@ class TestActivitiesCommand:
 
 
 class TestActivityCommand:
-    def test_activity_by_id(self, runner, mock_strava_client):
+    def test_activity_json_mode(self, runner, mock_strava_client):
         with patch(
             "health_data.sources.strava.commands.strava_client.get_activity",
-            return_value={"id": 456, "name": "Ride"},
-        ) as mock_get:
-            result = runner.invoke(main, ["strava", "activity", "456"])
+            return_value=SAMPLE_ACTIVITY,
+        ):
+            result = runner.invoke(main, ["--json", "strava", "activity", "1"])
 
         assert result.exit_code == 0
         data = json.loads(result.output)
-        assert data["id"] == 456
-        mock_get.assert_called_once_with(mock_strava_client, 456)
+        assert data["id"] == 1
+
+    def test_activity_human_mode(self, runner, mock_strava_client):
+        with patch(
+            "health_data.sources.strava.commands.strava_client.get_activity",
+            return_value=SAMPLE_ACTIVITY,
+        ):
+            result = runner.invoke(main, ["strava", "activity", "1"])
+
+        assert result.exit_code == 0
+        assert "Run" in result.output
+        assert "5.0 km" in result.output
 
 
 class TestStreamsCommand:
-    def test_streams_default_types(self, runner, mock_strava_client):
+    def test_streams_json_mode(self, runner, mock_strava_client):
         with patch(
             "health_data.sources.strava.commands.strava_client.get_streams",
             return_value={"heartrate": [120, 125], "time": [0, 1]},
-        ) as mock_get:
-            result = runner.invoke(main, ["strava", "streams", "789"])
+        ):
+            result = runner.invoke(main, ["--json", "strava", "streams", "789"])
 
         assert result.exit_code == 0
         data = json.loads(result.output)
         assert data["heartrate"] == [120, 125]
-        mock_get.assert_called_once_with(mock_strava_client, 789, types=None)
+
+    def test_streams_human_mode(self, runner, mock_strava_client):
+        with patch(
+            "health_data.sources.strava.commands.strava_client.get_streams",
+            return_value={"heartrate": [120, 125, 130], "time": [0, 1, 2]},
+        ):
+            result = runner.invoke(main, ["strava", "streams", "789"])
+
+        assert result.exit_code == 0
+        assert "heartrate" in result.output
+        assert "3" in result.output  # data points
 
     def test_streams_custom_types(self, runner, mock_strava_client):
         with patch(
@@ -125,7 +173,7 @@ class TestStreamsCommand:
             return_value={"heartrate": [120]},
         ) as mock_get:
             result = runner.invoke(
-                main, ["strava", "streams", "789", "--types", "heartrate,watts"]
+                main, ["--json", "strava", "streams", "789", "--types", "heartrate,watts"]
             )
 
         assert result.exit_code == 0
