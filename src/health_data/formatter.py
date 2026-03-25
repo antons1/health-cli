@@ -87,6 +87,7 @@ def format_activities(activities):
     rows = []
     for a in activities:
         rows.append([
+            a.get("id", "-"),
             _format_date(a.get("start_date_local")),
             a.get("name", "-"),
             a.get("sport_type", a.get("type", "-")),
@@ -96,7 +97,7 @@ def format_activities(activities):
             _val(a, "total_elevation_gain", "elev"),
         ])
 
-    headers = ["Date", "Name", "Type", "Distance", "Time", "Avg HR", "Elev"]
+    headers = ["ID", "Date", "Name", "Type", "Distance", "Time", "Avg HR", "Elev"]
     return tabulate(rows, headers=headers, tablefmt="simple")
 
 
