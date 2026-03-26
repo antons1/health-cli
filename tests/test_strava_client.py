@@ -112,6 +112,24 @@ class TestGetStreams:
         assert result == {}
 
 
+class TestGetGearList:
+    def test_returns_bikes_and_shoes(self, mock_client):
+        mock_athlete = MagicMock()
+        mock_bike = MagicMock()
+        mock_bike.model_dump.return_value = {"id": "b1", "name": "Trek", "distance": 10000.0}
+        mock_shoe = MagicMock()
+        mock_shoe.model_dump.return_value = {"id": "g1", "name": "Hoka", "distance": 5000.0}
+        mock_athlete.bikes = [mock_bike]
+        mock_athlete.shoes = [mock_shoe]
+        mock_client.get_athlete.return_value = mock_athlete
+
+        result = strava_client.get_gear_list(mock_client)
+
+        assert len(result) == 2
+        assert result[0]["name"] == "Trek"
+        assert result[1]["name"] == "Hoka"
+
+
 class TestGetGear:
     def test_returns_dict(self, mock_client):
         mock_gear = MagicMock()

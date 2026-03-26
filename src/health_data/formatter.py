@@ -138,6 +138,23 @@ def format_activity(activity):
 
 # --- Gear formatting ---
 
+def format_gear_list(gear_list):
+    """Format gear list as a table."""
+    if not gear_list:
+        return "No gear found."
+
+    rows = []
+    for g in gear_list:
+        rows.append([
+            g.get("id", "-"),
+            g.get("name", "-"),
+            format_distance(g.get("distance")),
+        ])
+
+    headers = ["ID", "Name", "Distance"]
+    return tabulate(rows, headers=headers, tablefmt="simple")
+
+
 def format_gear(gear):
     """Format gear details as key-value pairs."""
     name = gear.get("name", "Gear")

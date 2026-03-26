@@ -54,6 +54,15 @@ def get_streams(
     return {name: stream.data for name, stream in streams.items()}
 
 
+def get_gear_list(client: Client) -> list[dict]:
+    """Fetch all gear (bikes and shoes) from athlete profile."""
+    athlete = client.get_athlete()
+    gear = []
+    for item in list(athlete.bikes or []) + list(athlete.shoes or []):
+        gear.append(item.model_dump(exclude={"bound_client"}, exclude_none=True))
+    return gear
+
+
 def get_gear(client: Client, gear_id: str) -> dict:
     """Fetch gear details (shoes, bikes, etc.)."""
     gear = client.get_gear(gear_id)

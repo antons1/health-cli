@@ -9,6 +9,7 @@ from health_data.formatter import (
     format_activity,
     format_streams,
     format_gear,
+    format_gear_list,
     format_athlete_stats,
     format_laps,
     format_zones,
@@ -108,6 +109,18 @@ def streams(ctx, activity_id, types):
         output(data)
     else:
         click.echo(format_streams(data))
+
+
+@strava.command("gear-list")
+@click.pass_context
+def gear_list(ctx):
+    """List all your gear (bikes and shoes)."""
+    c = get_client()
+    data = strava_client.get_gear_list(c)
+    if _use_json(ctx):
+        output(data)
+    else:
+        click.echo(format_gear_list(data))
 
 
 @strava.command()

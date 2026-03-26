@@ -190,6 +190,34 @@ SAMPLE_GEAR = {
 }
 
 
+class TestGearListCommand:
+    def test_gear_list_json(self, runner, mock_strava_client):
+        gear = [
+            {"id": "b1", "name": "Trek", "distance": 10000.0},
+            {"id": "g1", "name": "Hoka", "distance": 5000.0},
+        ]
+        with patch(
+            "health_data.sources.strava.commands.strava_client.get_gear_list",
+            return_value=gear,
+        ):
+            result = runner.invoke(main, ["--json", "strava", "gear-list"])
+
+        assert result.exit_code == 0
+        data = json.loads(result.output)
+        assert len(data) == 2
+
+    def test_gear_list_human(self, runner, mock_strava_client):
+        gear = [{"id": "b1", "name": "Trek", "distance": 10000.0}]
+        with patch(
+            "health_data.sources.strava.commands.strava_client.get_gear_list",
+            return_value=gear,
+        ):
+            result = runner.invoke(main, ["strava", "gear-list"])
+
+        assert result.exit_code == 0
+        assert "Trek" in result.output
+
+
 class TestGearCommand:
     def test_gear_json_mode(self, runner, mock_strava_client):
         with patch(

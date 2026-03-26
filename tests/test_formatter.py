@@ -125,6 +125,24 @@ class TestFormatStreams:
         assert "No stream" in result
 
 
+class TestFormatGearList:
+    def test_shows_gear_table(self):
+        from health_data.formatter import format_gear_list
+        gear = [
+            {"id": "b1", "name": "Trek Madone", "distance": 10000.0},
+            {"id": "g1", "name": "Hoka Mach 6", "distance": 450000.0},
+        ]
+        result = format_gear_list(gear)
+        assert "Trek Madone" in result
+        assert "Hoka Mach 6" in result
+        assert "450.0 km" in result
+
+    def test_empty(self):
+        from health_data.formatter import format_gear_list
+        result = format_gear_list([])
+        assert "no gear" in result.lower()
+
+
 class TestFormatGear:
     def test_shows_gear_details(self):
         gear = {
