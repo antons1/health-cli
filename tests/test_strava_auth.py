@@ -7,12 +7,52 @@ import pytest
 
 from health_data.sources.strava.auth import (
     CONFIG_DIR,
+    _migrate_config_dir,
     setup,
     get_client,
     load_config,
     save_tokens,
     load_tokens,
 )
+
+
+class TestMigrateConfigDir:
+    def test_migrates_old_dir(self, tmp_path):
+        """Migrates files from old ~/.garmin-health/strava/ to new location."""
+        old_dir = tmp_path / "garmin-health" / "strava"
+        new_dir = tmp_path / "health-data" / "strava"
+        old_dir.mkdir(parents=True)
+        (old_dir / "config.json").write_text('{"client_id": "123"}')
+        (old_dir / "tokens.json").write_text('{"access_token": "abc"}')
+
+        _migrate_config_dir(old_dir, new_dir)
+
+        assert (new_dir / "config.json").exists()
+        assert (new_dir / "tokens.json").exists()
+        assert not old_dir.exists()
+
+    def test_noop_when_new_dir_exists(self, tmp_path):
+        """Does nothing if new config dir already exists."""
+        old_dir = tmp_path / "garmin-health" / "strava"
+        new_dir = tmp_path / "health-data" / "strava"
+        old_dir.mkdir(parents=True)
+        new_dir.mkdir(parents=True)
+        (old_dir / "config.json").write_text('{"old": true}')
+        (new_dir / "config.json").write_text('{"new": true}')
+
+        _migrate_config_dir(old_dir, new_dir)
+
+        data = json.loads((new_dir / "config.json").read_text())
+        assert data == {"new": True}
+
+    def test_noop_when_old_dir_missing(self, tmp_path):
+        """Does nothing if old config dir doesn't exist."""
+        old_dir = tmp_path / "garmin-health" / "strava"
+        new_dir = tmp_path / "health-data" / "strava"
+
+        _migrate_config_dir(old_dir, new_dir)
+
+        assert not new_dir.exists()
 
 
 class TestSetup:

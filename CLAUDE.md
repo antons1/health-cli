@@ -1,6 +1,6 @@
-As part of an ongoing project to track nutrition and health, I need easy access to health data. Most of my available health data are available through Garmin Connect and Apple Health.
+As part of an ongoing project to track nutrition and health, I need easy access to health data. Data comes from Strava via their API.
 
-This project should end up in a CLI that can be used by Claude Code/Claude Cowork to fetch my health metrics, workouts etc.
+This project is a CLI (`health`) used by Claude Code/Claude Cowork to fetch health metrics, workouts, and manage activities.
 
 ## Agents
 

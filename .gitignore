@@ -20,5 +20,6 @@ venv/
 .pytest_cache/
 .coverage
 
-# Garmin tokens (sensitive!)
+# Health data config (sensitive tokens)
 .garmin-health/
+.health-data/

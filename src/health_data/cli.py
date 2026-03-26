@@ -1,6 +1,5 @@
 import click
 
-from health_data.sources.garmin.commands import garmin
 from health_data.sources.strava.commands import strava
 
 
@@ -15,5 +14,4 @@ def main(ctx, use_json):
     ctx.obj["json"] = use_json
 
 
-main.add_command(garmin)
 main.add_command(strava)

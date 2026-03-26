@@ -19,15 +19,39 @@ logging.getLogger("stravalib.client").setLevel(logging.ERROR)
 logging.getLogger("root").setLevel(logging.ERROR)
 os.environ["SILENCE_TOKEN_WARNINGS"] = "true"
 
+_OLD_CONFIG_DIR = Path("~/.garmin-health/strava").expanduser()
 CONFIG_DIR = Path(
-    os.environ.get("STRAVA_CONFIG_DIR", "~/.garmin-health/strava")
+    os.environ.get("STRAVA_CONFIG_DIR", "~/.health-data/strava")
 ).expanduser()
+
+
+def _migrate_config_dir(old_dir: Path, new_dir: Path):
+    """Migrate config files from old location to new location."""
+    if not old_dir.exists() or new_dir.exists():
+        return
+    new_dir.mkdir(parents=True, exist_ok=True)
+    for f in old_dir.iterdir():
+        f.rename(new_dir / f.name)
+    # Remove old directory tree if empty
+    old_dir.rmdir()
+    old_parent = old_dir.parent
+    if old_parent.exists() and not any(old_parent.iterdir()):
+        old_parent.rmdir()
+
+
+_migrate_config_dir(_OLD_CONFIG_DIR, CONFIG_DIR)
 
 # OAuth2 callback server settings
 # Port 5000 is used by AirPlay on macOS — use 8339 instead
 CALLBACK_PORT = 8339
 REDIRECT_URI = f"http://localhost:{CALLBACK_PORT}/callback"
-SCOPES = "read,activity:read_all,profile:read_all"
+SCOPES = "read,read_all,activity:read_all,activity:write,profile:read_all,profile:write"
+
+
+def _write_private(path: Path, content: str):
+    """Write a file with owner-only permissions (600)."""
+    path.write_text(content)
+    path.chmod(0o600)
 
 
 def setup(client_id: str, client_secret: str):
@@ -37,7 +61,7 @@ def setup(client_id: str, client_secret: str):
     """
     CONFIG_DIR.mkdir(parents=True, exist_ok=True)
     config_file = CONFIG_DIR / "config.json"
-    config_file.write_text(json.dumps({
+    _write_private(config_file, json.dumps({
         "client_id": client_id,
         "client_secret": client_secret,
     }, indent=2))
@@ -59,7 +83,7 @@ def save_tokens(tokens: dict):
     """Save OAuth2 tokens to disk."""
     CONFIG_DIR.mkdir(parents=True, exist_ok=True)
     tokens_file = CONFIG_DIR / "tokens.json"
-    tokens_file.write_text(json.dumps(tokens, indent=2))
+    _write_private(tokens_file, json.dumps(tokens, indent=2))
 
 
 def load_tokens() -> dict:

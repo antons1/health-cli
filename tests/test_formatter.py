@@ -7,6 +7,14 @@ from health_data.formatter import (
     format_activities,
     format_activity,
     format_streams,
+    format_gear,
+    format_athlete_stats,
+    format_laps,
+    format_zones,
+    format_clubs,
+    format_routes,
+    format_route,
+    format_segment,
 )
 
 
@@ -115,3 +123,132 @@ class TestFormatStreams:
     def test_empty_streams(self):
         result = format_streams({})
         assert "No stream" in result
+
+
+class TestFormatGear:
+    def test_shows_gear_details(self):
+        gear = {
+            "id": "g123",
+            "name": "Hoka Mach 6",
+            "brand_name": "Hoka",
+            "model_name": "Mach 6",
+            "distance": 450000.0,
+        }
+        result = format_gear(gear)
+        assert "Hoka Mach 6" in result
+        assert "450.0 km" in result
+
+    def test_minimal_gear(self):
+        gear = {"name": "Old Shoes"}
+        result = format_gear(gear)
+        assert "Old Shoes" in result
+
+
+class TestFormatAthleteStats:
+    def test_shows_totals(self):
+        stats = {
+            "all_run_totals": {"count": 100, "distance": 500000.0, "moving_time": 180000, "elevation_gain": 5000.0},
+            "ytd_run_totals": {"count": 20, "distance": 100000.0, "moving_time": 36000, "elevation_gain": 1000.0},
+            "recent_run_totals": {"count": 5, "distance": 25000.0, "moving_time": 9000, "elevation_gain": 250.0},
+        }
+        result = format_athlete_stats(stats)
+        assert "All time" in result or "all" in result.lower()
+        assert "100" in result  # count
+
+    def test_empty_stats(self):
+        result = format_athlete_stats({})
+        assert "No" in result
+
+
+class TestFormatLaps:
+    def test_shows_lap_table(self):
+        laps = [
+            {"name": "Lap 1", "distance": 1000.0, "elapsed_time": 300, "average_heartrate": 150.0},
+            {"name": "Lap 2", "distance": 1000.0, "elapsed_time": 290, "average_heartrate": 155.0},
+        ]
+        result = format_laps(laps)
+        assert "Lap 1" in result
+        assert "Lap 2" in result
+        assert "1.0 km" in result
+
+    def test_empty_laps(self):
+        result = format_laps([])
+        assert "no lap" in result.lower()
+
+
+class TestFormatZones:
+    def test_shows_hr_zones(self):
+        zones = {
+            "heart_rate": {
+                "zones": [
+                    {"min": 0, "max": 120},
+                    {"min": 120, "max": 150},
+                    {"min": 150, "max": 170},
+                    {"min": 170, "max": 185},
+                    {"min": 185, "max": -1},
+                ]
+            },
+        }
+        result = format_zones(zones)
+        assert "Z1" in result or "Zone" in result
+        assert "120" in result
+
+    def test_empty_zones(self):
+        result = format_zones({})
+        assert "no zone" in result.lower()
+
+
+class TestFormatClubs:
+    def test_shows_club_list(self):
+        clubs = [
+            {"id": 1, "name": "Oslo Running Club", "member_count": 150, "sport_type": "running"},
+        ]
+        result = format_clubs(clubs)
+        assert "Oslo Running Club" in result
+        assert "150" in result
+
+    def test_empty_clubs(self):
+        result = format_clubs([])
+        assert "no club" in result.lower()
+
+
+class TestFormatRoutes:
+    def test_shows_route_table(self):
+        routes = [
+            {"id": 1, "name": "Frognerparken Loop", "distance": 5000.0, "elevation_gain": 50.0},
+        ]
+        result = format_routes(routes)
+        assert "Frognerparken" in result
+        assert "5.0 km" in result
+
+    def test_empty_routes(self):
+        result = format_routes([])
+        assert "no route" in result.lower()
+
+
+class TestFormatRoute:
+    def test_shows_route_details(self):
+        route = {
+            "name": "Frognerparken Loop",
+            "distance": 5000.0,
+            "elevation_gain": 50.0,
+            "description": "Nice loop",
+        }
+        result = format_route(route)
+        assert "Frognerparken" in result
+        assert "5.0 km" in result
+
+
+class TestFormatSegment:
+    def test_shows_segment_details(self):
+        segment = {
+            "name": "Holmenkollen Climb",
+            "distance": 3200.0,
+            "average_grade": 8.5,
+            "elevation_high": 371.0,
+            "elevation_low": 120.0,
+        }
+        result = format_segment(segment)
+        assert "Holmenkollen" in result
+        assert "3.2 km" in result
+        assert "8.5" in result

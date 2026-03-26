@@ -5,7 +5,6 @@ description = "CLI for fetching personal health data"
 requires-python = ">=3.10"
 dependencies = [
     "click>=8.0",
-    "garminconnect>=0.2.40",
     "stravalib>=2.0",
     "tabulate>=0.9",
 ]

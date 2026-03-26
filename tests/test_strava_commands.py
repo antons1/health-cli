@@ -180,3 +180,258 @@ class TestStreamsCommand:
         mock_get.assert_called_once_with(
             mock_strava_client, 789, types=["heartrate", "watts"]
         )
+
+
+SAMPLE_GEAR = {
+    "id": "g123",
+    "name": "Hoka Mach 6",
+    "brand_name": "Hoka",
+    "distance": 450000.0,
+}
+
+
+class TestGearCommand:
+    def test_gear_json_mode(self, runner, mock_strava_client):
+        with patch(
+            "health_data.sources.strava.commands.strava_client.get_gear",
+            return_value=SAMPLE_GEAR,
+        ):
+            result = runner.invoke(main, ["--json", "strava", "gear", "g123"])
+
+        assert result.exit_code == 0
+        data = json.loads(result.output)
+        assert data["name"] == "Hoka Mach 6"
+
+    def test_gear_human_mode(self, runner, mock_strava_client):
+        with patch(
+            "health_data.sources.strava.commands.strava_client.get_gear",
+            return_value=SAMPLE_GEAR,
+        ):
+            result = runner.invoke(main, ["strava", "gear", "g123"])
+
+        assert result.exit_code == 0
+        assert "Hoka Mach 6" in result.output
+
+
+class TestAthleteStatsCommand:
+    def test_athlete_stats_json_mode(self, runner, mock_strava_client):
+        stats = {"all_run_totals": {"count": 100, "distance": 500000.0}}
+        with patch(
+            "health_data.sources.strava.commands.strava_client.get_athlete_stats",
+            return_value=stats,
+        ):
+            result = runner.invoke(main, ["--json", "strava", "athlete-stats"])
+
+        assert result.exit_code == 0
+        data = json.loads(result.output)
+        assert data["all_run_totals"]["count"] == 100
+
+    def test_athlete_stats_human_mode(self, runner, mock_strava_client):
+        stats = {
+            "all_run_totals": {"count": 100, "distance": 500000.0, "moving_time": 180000, "elevation_gain": 5000.0},
+        }
+        with patch(
+            "health_data.sources.strava.commands.strava_client.get_athlete_stats",
+            return_value=stats,
+        ):
+            result = runner.invoke(main, ["strava", "athlete-stats"])
+
+        assert result.exit_code == 0
+        assert "100" in result.output
+
+
+class TestLapsCommand:
+    def test_laps_json_mode(self, runner, mock_strava_client):
+        laps = [{"name": "Lap 1", "distance": 1000.0, "elapsed_time": 300}]
+        with patch(
+            "health_data.sources.strava.commands.strava_client.get_laps",
+            return_value=laps,
+        ):
+            result = runner.invoke(main, ["--json", "strava", "laps", "789"])
+
+        assert result.exit_code == 0
+        data = json.loads(result.output)
+        assert data[0]["name"] == "Lap 1"
+
+    def test_laps_human_mode(self, runner, mock_strava_client):
+        laps = [{"name": "Lap 1", "distance": 1000.0, "elapsed_time": 300}]
+        with patch(
+            "health_data.sources.strava.commands.strava_client.get_laps",
+            return_value=laps,
+        ):
+            result = runner.invoke(main, ["strava", "laps", "789"])
+
+        assert result.exit_code == 0
+        assert "Lap 1" in result.output
+
+
+class TestZonesCommand:
+    def test_zones_json_mode(self, runner, mock_strava_client):
+        zones = {"heart_rate": {"zones": [{"min": 0, "max": 120}]}}
+        with patch(
+            "health_data.sources.strava.commands.strava_client.get_zones",
+            return_value=zones,
+        ):
+            result = runner.invoke(main, ["--json", "strava", "zones"])
+
+        assert result.exit_code == 0
+        data = json.loads(result.output)
+        assert "heart_rate" in data
+
+    def test_zones_human_mode(self, runner, mock_strava_client):
+        zones = {"heart_rate": {"zones": [{"min": 0, "max": 120}]}}
+        with patch(
+            "health_data.sources.strava.commands.strava_client.get_zones",
+            return_value=zones,
+        ):
+            result = runner.invoke(main, ["strava", "zones"])
+
+        assert result.exit_code == 0
+        assert "120" in result.output
+
+
+class TestClubsCommand:
+    def test_clubs_json_mode(self, runner, mock_strava_client):
+        clubs = [{"id": 1, "name": "Oslo Running Club", "member_count": 150}]
+        with patch(
+            "health_data.sources.strava.commands.strava_client.get_clubs",
+            return_value=clubs,
+        ):
+            result = runner.invoke(main, ["--json", "strava", "clubs"])
+
+        assert result.exit_code == 0
+        data = json.loads(result.output)
+        assert data[0]["name"] == "Oslo Running Club"
+
+
+class TestRoutesCommand:
+    def test_routes_json_mode(self, runner, mock_strava_client):
+        routes = [{"id": 1, "name": "Loop", "distance": 5000.0}]
+        with patch(
+            "health_data.sources.strava.commands.strava_client.get_routes",
+            return_value=routes,
+        ):
+            result = runner.invoke(main, ["--json", "strava", "routes"])
+
+        assert result.exit_code == 0
+        data = json.loads(result.output)
+        assert data[0]["name"] == "Loop"
+
+
+class TestRouteCommand:
+    def test_route_json_mode(self, runner, mock_strava_client):
+        route = {"id": 1, "name": "Loop", "distance": 5000.0}
+        with patch(
+            "health_data.sources.strava.commands.strava_client.get_route",
+            return_value=route,
+        ):
+            result = runner.invoke(main, ["--json", "strava", "route", "1"])
+
+        assert result.exit_code == 0
+        data = json.loads(result.output)
+        assert data["name"] == "Loop"
+
+
+class TestSegmentCommand:
+    def test_segment_json_mode(self, runner, mock_strava_client):
+        segment = {"id": 1, "name": "Climb", "distance": 3200.0}
+        with patch(
+            "health_data.sources.strava.commands.strava_client.get_segment",
+            return_value=segment,
+        ):
+            result = runner.invoke(main, ["--json", "strava", "segment", "1"])
+
+        assert result.exit_code == 0
+        data = json.loads(result.output)
+        assert data["name"] == "Climb"
+
+
+class TestSegmentsCommand:
+    def test_segments_json_mode(self, runner, mock_strava_client):
+        segments = [{"id": 1, "name": "Climb"}]
+        with patch(
+            "health_data.sources.strava.commands.strava_client.explore_segments",
+            return_value=segments,
+        ):
+            result = runner.invoke(
+                main,
+                ["--json", "strava", "segments", "--bounds", "59.9,10.7,60.0,10.8"],
+            )
+
+        assert result.exit_code == 0
+        data = json.loads(result.output)
+        assert data[0]["name"] == "Climb"
+
+
+class TestCreateActivityCommand:
+    def test_create_activity_json(self, runner, mock_strava_client):
+        created = {"id": 999, "name": "Morning Run", "sport_type": "Run"}
+        with patch(
+            "health_data.sources.strava.commands.strava_client.create_activity",
+            return_value=created,
+        ):
+            result = runner.invoke(main, [
+                "--json", "strava", "create-activity",
+                "--name", "Morning Run",
+                "--sport-type", "Run",
+                "--start", "2026-03-25T08:00:00",
+                "--elapsed-time", "1800",
+            ])
+
+        assert result.exit_code == 0
+        data = json.loads(result.output)
+        assert data["id"] == 999
+
+    def test_create_activity_human(self, runner, mock_strava_client):
+        created = {"id": 999, "name": "Morning Run", "sport_type": "Run",
+                   "distance": 5000.0, "moving_time": 1800}
+        with patch(
+            "health_data.sources.strava.commands.strava_client.create_activity",
+            return_value=created,
+        ):
+            result = runner.invoke(main, [
+                "strava", "create-activity",
+                "--name", "Morning Run",
+                "--sport-type", "Run",
+                "--start", "2026-03-25T08:00:00",
+                "--elapsed-time", "1800",
+                "--distance", "5000",
+            ])
+
+        assert result.exit_code == 0
+        assert "Morning Run" in result.output
+
+
+class TestUpdateActivityCommand:
+    def test_update_activity_json(self, runner, mock_strava_client):
+        updated = {"id": 999, "name": "Updated Run"}
+        with patch(
+            "health_data.sources.strava.commands.strava_client.update_activity",
+            return_value=updated,
+        ):
+            result = runner.invoke(main, [
+                "--json", "strava", "update-activity", "999",
+                "--name", "Updated Run",
+            ])
+
+        assert result.exit_code == 0
+        data = json.loads(result.output)
+        assert data["name"] == "Updated Run"
+
+
+class TestUploadCommand:
+    def test_upload_json(self, runner, mock_strava_client, tmp_path):
+        fit_file = tmp_path / "run.fit"
+        fit_file.write_bytes(b"fake data")
+        uploaded = {"id": 888, "name": "Uploaded Run"}
+        with patch(
+            "health_data.sources.strava.commands.strava_client.upload_activity",
+            return_value=uploaded,
+        ):
+            result = runner.invoke(main, [
+                "--json", "strava", "upload", str(fit_file),
+            ])
+
+        assert result.exit_code == 0
+        # Output contains "Uploading..." on stderr mixed in by CliRunner
+        assert '"id": 888' in result.output
