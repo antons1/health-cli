@@ -18,9 +18,19 @@ DEFAULT_STREAM_TYPES = [
 ]
 
 
-def get_activities(client: Client, limit: int = 20) -> list[dict]:
+def get_activities(
+    client: Client,
+    limit: int = 20,
+    before: datetime | None = None,
+    after: datetime | None = None,
+) -> list[dict]:
     """Fetch recent activities as a list of dicts."""
-    activities = client.get_activities(limit=limit)
+    kwargs: dict = {"limit": limit}
+    if before is not None:
+        kwargs["before"] = before
+    if after is not None:
+        kwargs["after"] = after
+    activities = client.get_activities(**kwargs)
     return [
         a.model_dump(exclude={"bound_client"}, exclude_none=True)
         for a in activities

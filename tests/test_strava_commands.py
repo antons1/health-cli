@@ -117,7 +117,35 @@ class TestActivitiesCommand:
             result = runner.invoke(main, ["strava", "activities", "--limit", "5"])
 
         assert result.exit_code == 0
-        mock_get.assert_called_once_with(mock_strava_client, limit=5)
+        mock_get.assert_called_once_with(mock_strava_client, limit=5, before=None, after=None)
+
+    def test_activities_with_after(self, runner, mock_strava_client):
+        with patch(
+            "health_data.sources.strava.commands.strava_client.get_activities",
+            return_value=[],
+        ) as mock_get:
+            result = runner.invoke(main, ["strava", "activities", "--after", "2025-01-01"])
+
+        assert result.exit_code == 0
+        call_kwargs = mock_get.call_args[1]
+        assert call_kwargs["after"].year == 2025
+        assert call_kwargs["after"].month == 1
+        assert call_kwargs["after"].day == 1
+
+    def test_activities_with_before_and_after(self, runner, mock_strava_client):
+        with patch(
+            "health_data.sources.strava.commands.strava_client.get_activities",
+            return_value=[SAMPLE_ACTIVITY],
+        ) as mock_get:
+            result = runner.invoke(
+                main,
+                ["strava", "activities", "--after", "2025-01-01", "--before", "2025-02-01"],
+            )
+
+        assert result.exit_code == 0
+        call_kwargs = mock_get.call_args[1]
+        assert call_kwargs["after"].year == 2025
+        assert call_kwargs["before"].month == 2
 
 
 class TestActivityCommand:

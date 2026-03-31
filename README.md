@@ -24,6 +24,8 @@ health strava login
 
 ```bash
 health strava activities              # list recent activities
+health strava activities --after 2025-01-01  # activities after date
+health strava activities --after 2025-01-01 --before 2025-02-01  # date range
 health strava activity 12345          # activity details
 health strava streams 12345           # second-by-second data
 health strava laps 12345              # lap splits

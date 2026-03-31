@@ -64,11 +64,13 @@ def login(code):
 
 @strava.command()
 @click.option("--limit", default=20, help="Number of activities")
+@click.option("--after", default=None, type=click.DateTime(), help="Only activities after this date (YYYY-MM-DD)")
+@click.option("--before", default=None, type=click.DateTime(), help="Only activities before this date (YYYY-MM-DD)")
 @click.pass_context
-def activities(ctx, limit):
+def activities(ctx, limit, after, before):
     """List recent activities."""
     c = get_client()
-    data = strava_client.get_activities(c, limit=limit)
+    data = strava_client.get_activities(c, limit=limit, before=before, after=after)
     if _use_json(ctx):
         output(data)
     else:
