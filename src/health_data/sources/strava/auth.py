@@ -158,7 +158,10 @@ def get_client() -> Client:
             "refresh_token": new_tokens["refresh_token"],
             "expires_at": new_tokens["expires_at"],
         }
-        save_tokens(tokens)
+        try:
+            save_tokens(tokens)
+        except OSError as e:
+            click.echo(f"Warning: could not save refreshed token: {e}", err=True)
 
     client.access_token = tokens["access_token"]
     return client

@@ -178,6 +178,35 @@ class TestGetClient:
         assert saved["access_token"] == "new_token"
         assert saved["refresh_token"] == "new_refresh"
 
+    def test_refresh_works_when_save_fails(self, tmp_path):
+        """get_client() still works if token file can't be written."""
+        config_file = tmp_path / "config.json"
+        config_file.write_text(json.dumps({
+            "client_id": "12345",
+            "client_secret": "my_secret",
+        }))
+        tokens_file = tmp_path / "tokens.json"
+        tokens_file.write_text(json.dumps({
+            "access_token": "expired_token",
+            "refresh_token": "refresh_tok",
+            "expires_at": time.time() - 100,
+        }))
+
+        mock_refresh_response = {
+            "access_token": "new_token",
+            "refresh_token": "new_refresh",
+            "expires_at": time.time() + 3600,
+        }
+
+        with patch("health_data.sources.strava.auth.CONFIG_DIR", tmp_path), \
+             patch("health_data.sources.strava.auth.Client") as MockClient, \
+             patch("health_data.sources.strava.auth.save_tokens", side_effect=OSError("read-only")):
+            mock_instance = MockClient.return_value
+            mock_instance.refresh_access_token.return_value = mock_refresh_response
+            client = get_client()
+
+        assert client.access_token == "new_token"
+
     def test_exits_when_not_setup(self, tmp_path):
         """get_client() exits if strava hasn't been set up."""
         with patch("health_data.sources.strava.auth.CONFIG_DIR", tmp_path):
