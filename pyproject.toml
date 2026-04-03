@@ -7,6 +7,9 @@ dependencies = [
     "click>=8.0",
     "stravalib>=2.0",
     "tabulate>=0.9",
+    "garminconnect>=0.3.0",
+    "curl_cffi>=0.14",
+    "ua-generator>=2.0",
 ]
 
 [project.optional-dependencies]

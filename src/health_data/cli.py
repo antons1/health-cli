@@ -1,6 +1,7 @@
 import click
 
 from health_data.sources.strava.commands import strava
+from health_data.sources.garmin.commands import garmin
 
 
 @click.group()
@@ -15,3 +16,4 @@ def main(ctx, use_json):
 
 
 main.add_command(strava)
+main.add_command(garmin)
