@@ -390,6 +390,16 @@ class TestGetWeight:
         result = get_weight(self.client, DATE)
         assert result["weight_kg"] is None
 
+    def test_does_not_cache_null_result(self):
+        self.client.get_weigh_ins.return_value = {
+            "dailyWeightSummaries": [],
+            "previousDateWeight": None,
+        }
+        with patch("health_data.sources.garmin.client.read_cache", return_value=None), \
+             patch("health_data.sources.garmin.client.write_cache") as mock_write:
+            get_weight(self.client, DATE)
+        mock_write.assert_not_called()
+
     def test_calls_correct_endpoint(self):
         self.client.get_weigh_ins.return_value = WEIGHT_RESPONSE_WITH_ENTRY
         get_weight(self.client, DATE)

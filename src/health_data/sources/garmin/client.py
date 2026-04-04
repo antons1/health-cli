@@ -194,10 +194,11 @@ def get_weight(client: Garmin, date: str) -> dict:
             "date": entry.get("calendarDate", date),
             "weight_kg": round(weight_g / 1000, 1),
         }
+        write_cache("weight", date, result)
     else:
         result = {"date": date, "weight_kg": None}
+        # Don't cache null — weight may not have synced yet
 
-    write_cache("weight", date, result)
     return result
 
 
