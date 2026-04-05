@@ -273,7 +273,10 @@ VO2MAX_RESPONSE = [
 
 WEIGHT_RESPONSE_WITH_ENTRY = {
     "dailyWeightSummaries": [
-        {"calendarDate": DATE, "weight": 92100.0, "sourceType": "MANUAL"}
+        {
+            "summaryDate": DATE,
+            "latestWeight": {"calendarDate": DATE, "weight": 92100.0, "sourceType": "MANUAL"},
+        }
     ],
     "previousDateWeight": None,
 }

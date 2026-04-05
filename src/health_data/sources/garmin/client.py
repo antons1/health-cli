@@ -186,12 +186,20 @@ def get_weight(client: Garmin, date: str) -> dict:
 
     data = client.get_weigh_ins(date, date)
     summaries = data.get("dailyWeightSummaries", [])
-    entry = summaries[0] if summaries else data.get("previousDateWeight")
 
-    if entry and entry.get("weight") is not None:
-        weight_g = entry["weight"]
+    if summaries:
+        summary = summaries[0]
+        latest = summary.get("latestWeight") or {}
+        weight_g = latest.get("weight")
+        entry_date = summary.get("summaryDate", date)
+    else:
+        fallback = data.get("previousDateWeight") or {}
+        weight_g = fallback.get("weight")
+        entry_date = fallback.get("calendarDate", date)
+
+    if weight_g is not None:
         result = {
-            "date": entry.get("calendarDate", date),
+            "date": entry_date,
             "weight_kg": round(weight_g / 1000, 1),
         }
         write_cache("weight", date, result)
