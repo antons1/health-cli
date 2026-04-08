@@ -41,8 +41,8 @@ health strava segments --bounds 59.9,10.7,60.0,10.8  # explore segments
 
 ```bash
 health strava create-activity --name "Morning Run" --sport-type Run \
-  --start 2026-03-25T08:00:00 --elapsed-time 1800 --distance 5000
-health strava update-activity 12345 --name "New Name" --gear-id g67890
+  --start 2026-03-25T08:00:00 --elapsed-time 1800 --distance 5000 --rpe 7
+health strava update-activity 12345 --name "New Name" --gear-id g67890 --rpe 8
 health strava upload activity.fit
 ```
 
@@ -77,6 +77,21 @@ health garmin intensity-minutes [DATE] # moderate/vigorous minutes, weekly total
 health garmin vo2max [DATE]           # VO2 max estimate
 health garmin weight [DATE]           # body weight (falls back to most recent entry)
 health garmin race-predictions        # predicted race times (5K–marathon)
+
+# Training metrics
+health garmin training-status [DATE]   # status, ACWR, load balance with targets
+health garmin training-readiness [DATE] # training readiness score
+health garmin lactate-threshold        # LT heart rate and pace
+health garmin hill-score [DATE]        # hill score (endurance + strength)
+
+# Activities
+health garmin activities [--limit N] [--activity-type running]
+health garmin activity 12345          # full detail: training effect, load, dynamics, HR zones, splits
+health garmin activity-splits 12345   # per-lap breakdown
+health garmin activity-hr-zones 12345 # time in each HR zone
+health garmin activity-weather 12345  # weather conditions
+health garmin activity-details 12345  # second-by-second streams
+health garmin activity-gear 12345     # gear used
 ```
 
 Responses are cached: past dates indefinitely, today's static metrics (sleep, HRV, RHR) for 4 hours, dynamic metrics (steps, calories, stress, body battery) for 15 minutes. Cache lives in `~/.health-data/garmin/cache/`.

@@ -4,8 +4,8 @@ This project is a CLI (`health`) used by Claude Code/Claude Cowork to fetch heal
 
 ## Sources
 
-- **Strava** — workouts, activities, gear, segments, routes
-- **Garmin Connect** — daily bio metrics: sleep, HRV, resting HR, stress, body battery, respiration, VO2 max, weight, steps, calories, intensity minutes, race predictions
+- **Strava** — workouts, activities (with RPE support), gear, segments, routes
+- **Garmin Connect** — daily bio metrics (sleep, HRV, RHR, stress, body battery, respiration, VO2 max, weight, steps, calories, intensity minutes, race predictions), training metrics (training status, training readiness, lactate threshold, hill score), and full activity data (details, splits, HR zones, weather, gear, time-series streams)
 
 ## Agents
 
