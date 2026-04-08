@@ -124,6 +124,7 @@ def format_activity(activity):
         ("Elevation", _val(activity, "total_elevation_gain", "elev")),
         ("Calories", _val(activity, "calories", "cal")),
         ("Temperature", _val(activity, "average_temp", "temp")),
+        ("RPE", _val(activity, "perceived_exertion", "int")),
     ]
 
     # Filter out fields with "-" value to keep output clean

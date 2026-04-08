@@ -252,8 +252,9 @@ def segments(ctx, bounds):
 @click.option("--elapsed-time", required=True, type=int, help="Elapsed time in seconds")
 @click.option("--distance", type=float, default=None, help="Distance in meters")
 @click.option("--description", default=None, help="Activity description")
+@click.option("--rpe", type=click.IntRange(1, 10), default=None, help="Rate of perceived exertion (1-10)")
 @click.pass_context
-def create_activity(ctx, name, sport_type, start, elapsed_time, distance, description):
+def create_activity(ctx, name, sport_type, start, elapsed_time, distance, description, rpe):
     """Create a manual activity."""
     start_date = datetime.fromisoformat(start)
     c = get_client()
@@ -265,6 +266,7 @@ def create_activity(ctx, name, sport_type, start, elapsed_time, distance, descri
         elapsed_time=elapsed_time,
         distance=distance,
         description=description,
+        perceived_exertion=rpe,
     )
     if _use_json(ctx):
         output(data)
@@ -278,8 +280,9 @@ def create_activity(ctx, name, sport_type, start, elapsed_time, distance, descri
 @click.option("--sport-type", default=None, help="New sport type")
 @click.option("--description", default=None, help="New description")
 @click.option("--gear-id", default=None, help="Gear ID to assign")
+@click.option("--rpe", type=click.IntRange(1, 10), default=None, help="Rate of perceived exertion (1-10)")
 @click.pass_context
-def update_activity(ctx, activity_id, name, sport_type, description, gear_id):
+def update_activity(ctx, activity_id, name, sport_type, description, gear_id, rpe):
     """Update an existing activity."""
     kwargs = {}
     if name is not None:
@@ -290,9 +293,11 @@ def update_activity(ctx, activity_id, name, sport_type, description, gear_id):
         kwargs["description"] = description
     if gear_id is not None:
         kwargs["gear_id"] = gear_id
+    if rpe is not None:
+        kwargs["perceived_exertion"] = rpe
 
     if not kwargs:
-        click.echo("No fields to update. Use --name, --sport-type, --description, or --gear-id.", err=True)
+        click.echo("No fields to update. Use --name, --sport-type, --description, --gear-id, or --rpe.", err=True)
         return
 
     c = get_client()

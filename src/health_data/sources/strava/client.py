@@ -156,6 +156,7 @@ def create_activity(
     elapsed_time: int,
     distance: float | None = None,
     description: str | None = None,
+    perceived_exertion: int | None = None,
 ) -> dict:
     """Create a manual activity."""
     kwargs = {
@@ -170,12 +171,27 @@ def create_activity(
         kwargs["description"] = description
 
     activity = client.create_activity(**kwargs)
+    if perceived_exertion is not None:
+        raw = client.protocol.put(
+            "/activities/{activity_id}",
+            activity_id=activity.id,
+            perceived_exertion=perceived_exertion,
+        )
+        activity = activity.model_validate({**raw, "bound_client": client})
     return activity.model_dump(exclude={"bound_client"}, exclude_none=True)
 
 
 def update_activity(client: Client, activity_id: int, **kwargs) -> dict:
     """Update an existing activity."""
+    perceived_exertion = kwargs.pop("perceived_exertion", None)
     activity = client.update_activity(activity_id, **kwargs)
+    if perceived_exertion is not None:
+        raw = client.protocol.put(
+            "/activities/{activity_id}",
+            activity_id=activity_id,
+            perceived_exertion=perceived_exertion,
+        )
+        activity = activity.model_validate({**raw, "bound_client": client})
     return activity.model_dump(exclude={"bound_client"}, exclude_none=True)
 
 
