@@ -507,6 +507,76 @@ def get_activity_details(client: Garmin, activity_id: int) -> dict:
     return streams
 
 
+def get_activity_running_dynamics(
+    client: Garmin,
+    activity_id: int,
+    segment_km: float = 1.0,
+) -> list[dict]:
+    """Per-segment running dynamics derived from time-series streams.
+
+    Buckets points by cumulative distance into `segment_km` segments and
+    averages each running-dynamics metric within the segment.
+    """
+    data = client.get_activity_details(activity_id, maxchart=10000, maxpoly=10000)
+    descriptors = data.get("metricDescriptors", [])
+    metrics = data.get("activityDetailMetrics", [])
+
+    key_to_idx = {d["key"]: d["metricsIndex"] for d in descriptors}
+    dist_idx = key_to_idx.get("sumDistance")
+    if dist_idx is None or not metrics:
+        return []
+
+    fields = {
+        "speed_ms": "directSpeed",
+        "cadence_spm": "directDoubleCadence",
+        "gct_ms": "directGroundContactTime",
+        "gct_balance_pct": "directGroundContactBalanceLeft",
+        "vertical_oscillation_cm": "directVerticalOscillation",
+        "vertical_ratio_pct": "directVerticalRatio",
+        "stride_length_cm": "directStrideLength",
+        "heart_rate_bpm": "directHeartRate",
+    }
+    field_indices = {f: key_to_idx.get(k) for f, k in fields.items()}
+
+    segment_m = segment_km * 1000.0
+    buckets: dict[int, dict[str, list]] = {}
+
+    for point in metrics:
+        raw = point.get("metrics", [])
+        if dist_idx >= len(raw) or raw[dist_idx] is None:
+            continue
+        seg = int(raw[dist_idx] // segment_m)
+        bucket = buckets.setdefault(seg, {f: [] for f in fields})
+        for f, idx in field_indices.items():
+            if idx is None or idx >= len(raw):
+                continue
+            v = raw[idx]
+            if v is not None:
+                bucket[f].append(v)
+
+    def _avg(vals):
+        return sum(vals) / len(vals) if vals else None
+
+    results = []
+    for seg_idx in sorted(buckets):
+        b = buckets[seg_idx]
+        speed = _avg(b["speed_ms"])
+        results.append({
+            "segment": seg_idx + 1,
+            "segment_km": segment_km,
+            "avg_speed_ms": speed,
+            "avg_pace": _format_pace_ms(speed),
+            "cadence_spm": _avg(b["cadence_spm"]),
+            "gct_ms": _avg(b["gct_ms"]),
+            "gct_balance_pct": _avg(b["gct_balance_pct"]),
+            "vertical_oscillation_cm": _avg(b["vertical_oscillation_cm"]),
+            "vertical_ratio_pct": _avg(b["vertical_ratio_pct"]),
+            "stride_length_cm": _avg(b["stride_length_cm"]),
+            "avg_hr_bpm": _avg(b["heart_rate_bpm"]),
+        })
+    return results
+
+
 def get_activity_gear(client: Garmin, activity_id: int) -> list[dict]:
     """Fetch gear used for an activity."""
     data = client.get_activity_gear(activity_id)

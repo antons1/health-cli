@@ -24,6 +24,7 @@ from health_data.sources.garmin.formatter import (
     format_activity_hr_zones,
     format_activity_weather,
     format_activity_details,
+    format_activity_running_dynamics,
     format_activity_gear,
     format_lactate_threshold,
     format_training_status,
@@ -335,6 +336,20 @@ def activity_details(ctx, activity_id):
         output(data)
     else:
         click.echo(format_activity_details(data))
+
+
+@garmin.command("activity-running-dynamics")
+@click.argument("activity_id", type=int)
+@click.option("--segment-km", default=1.0, type=float, help="Segment size in km (default: 1.0)")
+@click.pass_context
+def activity_running_dynamics(ctx, activity_id, segment_km):
+    """Per-segment running dynamics (cadence, GCT, vertical oscillation, etc.)."""
+    c = get_client()
+    data = garmin_client.get_activity_running_dynamics(c, activity_id, segment_km=segment_km)
+    if _use_json(ctx):
+        output(data)
+    else:
+        click.echo(format_activity_running_dynamics(data))
 
 
 @garmin.command("activity-gear")

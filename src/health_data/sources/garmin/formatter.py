@@ -358,6 +358,26 @@ def format_activity_details(streams: dict) -> str:
     return tabulate(rows, headers=headers, tablefmt="simple")
 
 
+def format_activity_running_dynamics(segments: list[dict]) -> str:
+    if not segments:
+        return "No running dynamics data available."
+    rows = []
+    for s in segments:
+        rows.append([
+            s.get("segment", "-"),
+            s.get("avg_pace") or "-",
+            f"{s['cadence_spm']:.0f}" if s.get("cadence_spm") is not None else "-",
+            f"{s['stride_length_cm']:.0f}" if s.get("stride_length_cm") is not None else "-",
+            f"{s['gct_ms']:.0f}" if s.get("gct_ms") is not None else "-",
+            f"{s['gct_balance_pct']:.1f}%" if s.get("gct_balance_pct") is not None else "-",
+            f"{s['vertical_oscillation_cm']:.1f}" if s.get("vertical_oscillation_cm") is not None else "-",
+            f"{s['vertical_ratio_pct']:.1f}%" if s.get("vertical_ratio_pct") is not None else "-",
+            f"{s['avg_hr_bpm']:.0f}" if s.get("avg_hr_bpm") is not None else "-",
+        ])
+    headers = ["Seg", "Pace", "Cad", "Stride", "GCT", "GCT bal L", "Vert osc", "Vert ratio", "HR"]
+    return tabulate(rows, headers=headers, tablefmt="simple")
+
+
 def format_activity_gear(gear: list[dict]) -> str:
     if not gear:
         return "No gear found."

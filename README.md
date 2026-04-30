@@ -91,6 +91,7 @@ health garmin activity-splits 12345   # per-lap breakdown
 health garmin activity-hr-zones 12345 # time in each HR zone
 health garmin activity-weather 12345  # weather conditions
 health garmin activity-details 12345  # second-by-second streams
+health garmin activity-running-dynamics 12345 [--segment-km 1.0]  # per-km cadence, GCT, vertical osc, etc.
 health garmin activity-gear 12345     # gear used
 ```
 
